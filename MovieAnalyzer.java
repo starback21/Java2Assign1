@@ -7,66 +7,66 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MovieAnalyzer {
-    private  static Stream<movie> sentence;
+  static Stream<movie> sentence;
 
-    public MovieAnalyzer(String dataset_path){
-        List<movie> movies = new ArrayList<>();
-        try (BufferedReader infile
-                     = new BufferedReader(new FileReader(dataset_path))){
-            String   line;
-            String[] parts;
-            int cnt = 0;
-            while ((line = infile.readLine()) != null){
-                parts = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-                if (parts.length <= 16 ){
-                    if (cnt != 0) {
-                        movie m = new movie();
-                        m.title = parts[1];
-                        if (parts[2].equals("")){
-                            m.year = null;
-                        }else {
-                            m.year = Integer.parseInt(parts[2]);
-                        }
-                        m.certificate = parts[3];
-                        m.runtime = parts[4];
-                        m.genre = parts[5];
-                        if (parts[6].equals("")){
-                            m.rating = null;
-                        }else {
-                            m.rating = Float.parseFloat(parts[6]);
-                        }
-                        m.overview = parts[7];
-                        if (parts[8].equals("")){
-                            m.score = null;
-                        }else {
-                            m.score = Integer.parseInt(parts[8]);
-                        }
-                        m.director = parts[9];
-                        m.star1 = parts[10];
-                        m.star2 = parts[11];
-                        m.star3 = parts[12];
-                        m.star4 = parts[13];
-                        if (parts[14].equals("")){
-                            m.vote = null;
-                        }else {
-                            m.vote = Integer.parseInt(parts[14]);
-                        }
-                        if (parts.length == 15 || parts[15].equals("")){
-                            m.gross = null;
-                        }else {
-                            String gross_s = parts[15].replace("\"", "");
-                            gross_s = gross_s.replace(",", "");
-                            m.gross = Integer.parseInt(gross_s);
-                        }
-                        movies.add(m);
+  public MovieAnalyzer(String dataset_path){
+    List<movie> movies = new ArrayList<>();
+    try (BufferedReader infile
+                 = new BufferedReader(new FileReader(dataset_path))){
+      String   line;
+      String[] parts;
+      int cnt = 0;
+        while ((line = infile.readLine()) != null){
+            parts = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+            if (parts.length <= 16 ){
+                if (cnt != 0) {
+                    movie m = new movie();
+                    m.title = parts[1];
+                    if (parts[2].equals("")){
+                        m.year = null;
+                    }else {
+                        m.year = Integer.parseInt(parts[2]);
                     }
-                    cnt++;
+                    m.certificate = parts[3];
+                    m.runtime = parts[4];
+                    m.genre = parts[5];
+                    if (parts[6].equals("")){
+                        m.rating = null;
+                    }else {
+                        m.rating = Float.parseFloat(parts[6]);
+                    }
+                    m.overview = parts[7];
+                    if (parts[8].equals("")){
+                        m.score = null;
+                    }else {
+                        m.score = Integer.parseInt(parts[8]);
+                    }
+                    m.director = parts[9];
+                    m.star1 = parts[10];
+                    m.star2 = parts[11];
+                    m.star3 = parts[12];
+                    m.star4 = parts[13];
+                    if (parts[14].equals("")){
+                        m.vote = null;
+                    }else {
+                        m.vote = Integer.parseInt(parts[14]);
+                    }
+                    if (parts.length == 15 || parts[15].equals("")){
+                        m.gross = null;
+                    }else {
+                        String gross_s = parts[15].replace("\"", "");
+                        gross_s = gross_s.replace(",", "");
+                        m.gross = Integer.parseInt(gross_s);
+                    }
+                    movies.add(m);
                 }
+                cnt++;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        sentence = movies.stream();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    sentence = movies.stream();
     }
 
 
@@ -85,21 +85,30 @@ public class MovieAnalyzer {
         return resultMap;
     }
 
-    public static Map<String, Integer> getMovieCountByGenre(){
-        Map<String, Integer> resultMap = new HashMap<>();
+    public Map<String, Integer> getMovieCountByGenre(){
+        Map<String, Integer> resultMap = new LinkedHashMap<>();
+        Map<String, Integer> collectMap = new LinkedHashMap<>();
         sentence.forEach(item->{
             String genre = item.getGenre();
             String[] gList = genre.split(",");
             for (String g : gList){
                 g = g.replace("\"", "");
                 g = g.replace(" ","");
-                if (!resultMap.containsKey(g)){
-                    resultMap.put(g,1);
+                if (!collectMap.containsKey(g)){
+                    collectMap.put(g,1);
                 }else {
-                    resultMap.put(g,resultMap.get(g)+1);
+                    collectMap.put(g,collectMap.get(g)+1);
                 }
             }
         } );
+        collectMap.entrySet()
+                .stream().sorted((v1,v2) -> {
+                    if (v1.getValue().equals(v2.getValue())){
+                        return v1.getKey().compareTo(v2.getKey());
+                    }else {
+                        return v2.getValue().compareTo(v1.getValue());
+                    }
+                }).forEachOrdered(x -> resultMap.put(x.getKey(),x.getValue()));
         return resultMap;
 
     }
@@ -120,7 +129,7 @@ public class MovieAnalyzer {
         return null;
     }
 
-     static class movie{
+    class movie{
         String poster_link;
         String title;
         Integer year;
